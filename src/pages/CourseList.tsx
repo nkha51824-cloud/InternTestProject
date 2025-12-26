@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Input, Button, Space, Select, notification } from "antd";
+import { Table, Input, Button, Space, Select, notification, Modal } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie"; 
 import api from "../api/api";
@@ -8,6 +8,7 @@ import styles from "../styles/CourseList.module.css";
 import { LEVELS, CATEGORIES, PAGE, LIMIT } from "../constants/constants";
 
 const { Search } = Input;
+const { confirm } = Modal;
 
 const CourseList: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -38,19 +39,37 @@ const CourseList: React.FC = () => {
     fetchCourses();
   }, [search, level, category]);
 
-  const handleLogout = () => {
-    // Xóa cookie để PrivateRoute chặn truy cập
-    Cookies.remove("token");
-    
-    // Xóa sạch bộ nhớ cục bộ
-    localStorage.clear();
+  // Hàm xử lý xóa khóa học
+  const handleDelete = (id: string, title: string) => {
+    confirm({
+      title: "Bạn có chắc chắn muốn xóa khóa học này?",
+      content: `Khóa học "${title}" sẽ bị xóa vĩnh viễn khỏi hệ thống.`,
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await api.delete(`/course/${id}`);
+          notification.success({ message: "Xóa thành công" });
+          fetchCourses(); // Tải lại danh sách sau khi xóa
+        } catch (err) {
+          notification.error({ 
+            message: "Xóa thất bại", 
+            description: "Không thể kết nối với máy chủ hoặc quyền bị từ chối." 
+          });
+        }
+      },
+    });
+  };
 
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    Cookies.remove("token");
+    localStorage.clear();
     notification.success({
       message: "Đã đăng xuất",
       description: "Đang quay lại trang đăng nhập...",
     });
-
-    // Chuyển hướng ngay lập tức
     navigate("/login", { replace: true });
   };
 
@@ -68,7 +87,18 @@ const CourseList: React.FC = () => {
           <Link to={`/courses/edit/${record.id}`}>
             <Button size="small">Edit</Button>
           </Link>
-          <Button danger size="small">Delete</Button>
+          <Button 
+            danger 
+            size="small" 
+            onClick={() => {
+              // Kiểm tra id tồn tại để sửa lỗi TypeScript 'string | undefined'
+              if (record.id) {
+                handleDelete(record.id, record.title);
+              }
+            }}
+          >
+            Delete
+          </Button>
         </Space>
       ),
     },
@@ -96,9 +126,10 @@ const CourseList: React.FC = () => {
               onSearch={(val) => setSearch(val)} 
               className={styles.searchInput}
               size="small"
+              allowClear
             />
             <Select 
-              placeholder="Filter by category" 
+              placeholder="Category" 
               onChange={(val) => setCategory(val)} 
               allowClear 
               className={styles.categorySelect}
@@ -109,7 +140,7 @@ const CourseList: React.FC = () => {
               ))}
             </Select>
             <Select 
-              placeholder="Filter by level" 
+              placeholder="Level" 
               onChange={(val) => setLevel(val)} 
               allowClear 
               className={styles.levelSelect}
