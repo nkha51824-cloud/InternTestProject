@@ -1,0 +1,43 @@
+
+.pageWrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #aaa1a1; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+
+.formContainer {
+  width: 100%;
+  max-width: 600px;
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+  border: 1px solid #d9d9d9; 
+}
+
+
+.submitButtonContainer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+
+:global(.ant-form-item-label > label) {
+  font-weight: 500;
+  color: #444;
+}
